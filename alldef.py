@@ -1,10 +1,9 @@
-from functools import reduce
-from hashlib import md5
-import time
 import hashlib
-import urllib.parse
-import urllib.request
 import os
+import time
+import urllib.parse
+from functools import reduce
+
 import requests
 
 mixinKeyEncTab = [
@@ -14,28 +13,31 @@ mixinKeyEncTab = [
     36, 20, 34, 44, 52
 ]
 
+
 def appsign(params, appkey, appsec):
-    '为请求参数进行 APP 签名'
+    """为请求参数进行 APP 签名"""
     params.update({'appkey': appkey})
-    params = dict(sorted(params.items())) # 按照 key 重排参数
-    query = urllib.parse.urlencode(params) # 序列化参数
-    sign = hashlib.md5((query+appsec).encode()).hexdigest() # 计算 api 签名
-    params.update({'sign':sign})
+    params = dict(sorted(params.items()))  # 按照 key 重排参数
+    query = urllib.parse.urlencode(params)  # 序列化参数
+    sign = hashlib.md5((query + appsec).encode()).hexdigest()  # 计算 api 签名
+    params.update({'sign': sign})
     return params
 
+
 def get_mixinkey(orig: str):
-    '对 imgKey 和 subKey 进行字符顺序打乱编码'
+    """对 imgKey 和 subKey 进行字符顺序打乱编码"""
     return reduce(lambda s, i: s + orig[i], mixinKeyEncTab, '')[:32]
 
-def get_wbikeys(params:dict) -> dict:
-    '''为请求参数进行 Wbi 签名
+
+def get_wbikeys(params: dict) -> dict:
+    """为请求参数进行 Wbi 签名
     @params:未签名参数
-    '''
+    """
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
         'Referer': 'https://www.bilibili.com/'
     }
-    resp = requests.get('https://api.bilibili.com/x/web-interface/nav', headers=headers,timeout=10)
+    resp = requests.get('https://api.bilibili.com/x/web-interface/nav', headers=headers, timeout=10)
     resp.raise_for_status()
     json_content = resp.json()
     img_url: str = json_content['data']['wbi_img']['img_url']
@@ -44,62 +46,65 @@ def get_wbikeys(params:dict) -> dict:
     sub_key = sub_url.rsplit('/', 1)[1].split('.')[0]
     mixin_key = get_mixinkey(img_key + sub_key)
     curr_time = round(time.time())
-    params['wts'] = curr_time                                   # 添加 wts 字段
-    params = dict(sorted(params.items()))                       # 按照 key 重排参数
+    params['wts'] = curr_time  # 添加 wts 字段
+    params = dict(sorted(params.items()))  # 按照 key 重排参数
     # 过滤 value 中的 "!'()*" 字符
     params = {
-        k : ''.join(filter(lambda chr: chr not in "!'()*", str(v)))
-        for k, v 
+        k: ''.join(filter(lambda chr: chr not in "!'()*", str(v)))
+        for k, v
         in params.items()
     }
-    query = urllib.parse.urlencode(params)                      # 序列化参数
-    wbi_sign = md5((query + mixin_key).encode()).hexdigest()    # 计算 w_rid
+    query = urllib.parse.urlencode(params)  # 序列化参数
+    wbi_sign = hashlib.md5((query + mixin_key).encode()).hexdigest()  # 计算 w_rid
     params['w_rid'] = wbi_sign
     return params
 
-def get_info(bvid:str) -> dict:
-    '''获取视频信息
+
+def get_info(bvid: str) -> dict:
+    """获取视频信息
     @bvid:视频BV号
-    '''
+    """
     info_url = 'https://api.bilibili.com/x/web-interface/view?'
-    info_params = get_wbikeys({'bvid':bvid})
+    info_params = get_wbikeys({'bvid': bvid})
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
         'Referer': 'https://www.bilibili.com/'
     }
-    info = requests.get(url=info_url,headers=headers,params=info_params,timeout=10)
+    info = requests.get(url=info_url, headers=headers, params=info_params, timeout=10)
     if info.status_code == 200:
         return info.json()
     if info.status_code != 200:
-        return {'code':info.status_code}
+        return {'code': info.status_code}
 
-def get_videourl(bvid:str,cid:str,qn:str) -> dict:
-    '''获取视频url
+
+def get_videourl(bvid: str, cid: str, qn: str) -> dict:
+    """获取视频url
     @bvid:视频BV号
     @cid:视频cid，由get_info方法获取
     @qn:视频清晰度，16:360P 流畅，32:480P 清晰，64:720P 高清
-    '''
+    """
     video_stream_url = 'https://api.bilibili.com/x/player/wbi/playurl?'
-    video_stream_params = get_wbikeys({'bvid':bvid,'cid':cid,'qn':qn,'platform':'html5','high_quality':'1'})
-    video_url = requests.get(url=video_stream_url,params=video_stream_params,timeout=10)
-    if video_url.status_code == 200:
-        return video_url.json()
-    if video_url.status_code != 200:
-        return {'code':video_url}
+    video_stream_params = get_wbikeys({'bvid': bvid, 'cid': cid, 'qn': qn})
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        'Referer': 'https://www.bilibili.com/'
+    }
+    video_url = requests.get(url=video_stream_url, params=video_stream_params, headers=headers, timeout=10)
+#    if video_url.status_code == 200:
+    return video_url.json()
+#    if video_url.status_code != 200:
+#        return {'code': video_url}
 
-def percent(a:int,b:int,c:int) -> int:
-    '''获取下载进度百分比
-    @a:已下载数据块
-    @b:数据块大小
-    @c:远程文件大小
-    '''
-    per = 100*a*b/c
-    if per > 100:
-        per = 100
-    return per
 
-def get_video(url:str,name:str,dir:str=os.path.abspath('.')) -> str:
-    '''下载视频'''
-    filename = dir + name
-    urllib.request.urlretrieve(url=url,filename=filename,reporthook=percent)
+def download(url: str, name: str, output_path: str = 'D:/', chunk_size = 1024) -> str:
+    """下载文件"""
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        'Referer': 'https://www.bilibili.com/'
+    }
+    filename = output_path + name
+    response = requests.get(url=url, headers=headers, stream=True)
+    with open(file=filename, mode="wb") as w:
+        for chunk in response.iter_content(chunk_size):
+            w.write(chunk)
     return filename

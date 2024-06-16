@@ -1,11 +1,11 @@
-from time import sleep
 import sys
+import time
 import alldef
 
 params = {
-    'id':436275,
-    'str':'48265113',
-    'test':'abcdefg',
+    'id': 436275,
+    'str': '48265113',
+    'test': 'abcdefg',
 }
 appkey = "1d8b6e7d45233436"
 appsec = "560c52ccd288fed045859ed18bffd973"
@@ -20,19 +20,19 @@ if choice == '1':
     if video_info['code'] != 0:
         print('视频信息获取失败，错误码为' + str(video_info['code']))
         print('程序将在5秒后退出')
-        sleep(5)
-        sys.exit() 
-    
+        time.sleep(5)
+        sys.exit()
+
     video_title = video_info['data']['title']
     video_cid = video_info['data']['cid']
     print('获取视频地址中...')
-    url = alldef.get_videourl(bvid=bvid,cid=video_cid,qn=qn)
+    url = alldef.get_videourl(bvid=bvid, cid=video_cid, qn=qn)
     print(url)
     if url['code'] != 0:
         print('视频地址获取失败，错误码为' + str(url['code']))
         print('程序将在5秒后退出')
-        sleep(5)
-        sys.exit() 
+        time.sleep(5)
+        sys.exit()
     print('文件下载中...')
-    filename = alldef.get_video(url=url['data']['durl']['url'],name=video_title)
-    print('下载任务已结束，文件为' + filename)
+    video = alldef.download(url=url['data']['durl'][0]['url'], name=video_title)
+    print('下载任务已结束，文件为' + video1)
