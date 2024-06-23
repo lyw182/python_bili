@@ -6,6 +6,8 @@ from functools import reduce
 
 import requests
 
+
+
 mixinKeyEncTab = [
     46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35, 27, 43, 5, 49,
     33, 9, 42, 19, 29, 28, 14, 39, 12, 38, 41, 13, 37, 48, 7, 16, 24, 55, 40,
@@ -64,12 +66,12 @@ def get_info(bvid: str) -> dict:
     """获取视频信息
     @bvid:视频BV号
     """
-    info_url = 'https://api.bilibili.com/x/web-interface/view?'
-    info_params = get_wbikeys({'bvid': bvid})
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
         'Referer': 'https://www.bilibili.com/'
     }
+    info_url = 'https://api.bilibili.com/x/web-interface/view?'
+    info_params = get_wbikeys({'bvid': bvid})
     info = requests.get(url=info_url, headers=headers, params=info_params, timeout=10)
     if info.status_code == 200:
         return info.json()
@@ -83,12 +85,12 @@ def get_videourl(bvid: str, cid: str, qn: str) -> dict:
     @cid:视频cid，由get_info方法获取
     @qn:视频清晰度，16:360P 流畅，32:480P 清晰，64:720P 高清
     """
-    video_stream_url = 'https://api.bilibili.com/x/player/wbi/playurl?'
-    video_stream_params = get_wbikeys({'bvid': bvid, 'cid': cid, 'qn': qn})
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
         'Referer': 'https://www.bilibili.com/'
     }
+    video_stream_url = 'https://api.bilibili.com/x/player/wbi/playurl?'
+    video_stream_params = get_wbikeys({'bvid': bvid, 'cid': cid, 'qn': qn})
     video_url = requests.get(url=video_stream_url, params=video_stream_params, headers=headers, timeout=10)
 #    if video_url.status_code == 200:
     return video_url.json()
@@ -96,13 +98,18 @@ def get_videourl(bvid: str, cid: str, qn: str) -> dict:
 #        return {'code': video_url}
 
 
-def download(url: str, name: str, output_path: str = 'D:/', chunk_size = 1024) -> str:
-    """下载文件"""
+def download(url: str, name: str, output_path: str = os.path.abspath('.')) -> str:
+    """下载文件
+    @url:下载url，一般由get_*提供
+    @name:文件名，一般由get_*提供
+    @output_path:保存位置
+    """
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
         'Referer': 'https://www.bilibili.com/'
     }
-    filename = output_path + name
+    chunk_size = 1024
+    filename = output_path + '\\' + name + '.mp4'
     response = requests.get(url=url, headers=headers, stream=True)
     with open(file=filename, mode="wb") as w:
         for chunk in response.iter_content(chunk_size):
