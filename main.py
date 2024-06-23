@@ -27,7 +27,6 @@ if choice == '1':
     video_cid = video_info['data']['cid']
     print('获取视频地址中...')
     url = alldef.get_videourl(bvid=bvid, cid=video_cid, qn=qn)
-    print(url)
     if url['code'] != 0:
         print('视频地址获取失败，错误码为' + str(url['code']))
         print('程序将在5秒后退出')
@@ -35,4 +34,4 @@ if choice == '1':
         sys.exit()
     print('文件下载中...')
     video = alldef.download(url=url['data']['durl'][0]['url'], name=video_title)
-    print('下载任务已结束，文件为' + video1)
+    print('下载任务已结束，文件为' + video)
