@@ -15,18 +15,20 @@ mixinKeyEncTab = [
 ]
 
 
-#def appsign(params, appkey, appsec):
-#    """为请求参数进行 APP 签名"""
-#    params.update({'appkey': appkey})
-#    params = dict(sorted(params.items()))  # 按照 key 重排参数
-#    query = urllib.parse.urlencode(params)  # 序列化参数
-#    sign = hashlib.md5((query + appsec).encode()).hexdigest()  # 计算 api 签名
-#    params.update({'sign': sign})
-#    return params
+# def appsign(params, appkey, appsec):
+#     """为请求参数进行 APP 签名"""
+#     params.update({'appkey': appkey})
+#     params = dict(sorted(params.items()))  # 按照 key 重排参数
+#     query = urllib.parse.urlencode(params)  # 序列化参数
+#     sign = hashlib.md5((query + appsec).encode()).hexdigest()  # 计算 api 签名
+#     params.update({'sign': sign})
+#     return params
 
 def get_cookies():
+    """获取cookies"""
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/58.0.3029.110 Safari/537.3',
         'Referer': 'https://www.bilibili.com/'
     }
     cookies = httpx.get(url='https://www.bilibili.com/', headers=headers)
@@ -34,10 +36,14 @@ def get_cookies():
 
 
 def get_search(keyword: str):
+    """搜索bilibili视频
+    @keyword：搜索关键词
+    """
     search_url = 'https://api.bilibili.com/x/web-interface/wbi/search/type'
     params = {'keyword': keyword, 'search_type': 'video'}
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/58.0.3029.110 Safari/537.3',
         'Referer': 'https://www.bilibili.com/'
     }
     search = httpx.get(url=search_url, headers=headers, cookies=get_cookies(), params=get_wbikeys(params=params))
@@ -54,7 +60,8 @@ def get_wbikeys(params: dict) -> dict:
     @params:未签名参数
     """
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/58.0.3029.110 Safari/537.3',
         'Referer': 'https://www.bilibili.com/'
     }
     wbikeys_url = 'https://api.bilibili.com/x/web-interface/nav'
@@ -86,7 +93,8 @@ def get_info(bvid: str) -> dict:
     @bvid:视频BV号
     """
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/58.0.3029.110 Safari/537.3',
         'Referer': 'https://www.bilibili.com/'
     }
     info_url = 'https://api.bilibili.com/x/web-interface/view?'
@@ -104,7 +112,8 @@ def get_videourl(bvid: str, cid: str) -> dict:
     @cid:视频cid，由get_info方法获取
     """
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/58.0.3029.110 Safari/537.3',
         'Referer': 'https://www.bilibili.com/'
     }
     video_stream_url = 'https://api.bilibili.com/x/player/wbi/playurl?'
@@ -120,7 +129,8 @@ def download(url: str, name: str, output_path: str = os.path.abspath('.')) -> st
     @output_path:保存位置
     """
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/58.0.3029.110 Safari/537.3',
         'Referer': 'https://www.bilibili.com/'
     }
     filename = re.sub(pattern=r'/', repl=r' ', string=rf'{output_path}\{name}.mp4')
