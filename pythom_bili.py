@@ -122,7 +122,7 @@ def get_videourl(bvid: str, cid: str) -> dict:
     return video_url.json()
 
 
-def download(url: str, name: str, output_path: str = os.path.abspath('.')) -> str:
+def download(url: str, name: str, output_path: str) -> str:
     """下载文件
     @url:下载url，一般由get_*提供
     @name:文件名，一般由get_*提供
@@ -133,9 +133,10 @@ def download(url: str, name: str, output_path: str = os.path.abspath('.')) -> st
                       'Chrome/58.0.3029.110 Safari/537.3',
         'Referer': 'https://www.bilibili.com/'
     }
-    filename = re.sub(pattern=r'/', repl=r' ', string=rf'{output_path}\{name}.mp4')
+    filename = re.sub(pattern=r'/', repl=r' ', string=rf'{name}.mp4')
+    file_output = rf'{output_path}/{filename}'
     with httpx.stream(method='GET', url=url, headers=headers) as response:
-        with open(file=filename, mode='wb+') as w:
+        with open(file=file_output, mode='wb+') as w:
             for chunk in response.iter_raw():
                 w.write(chunk)
-    return filename
+    return file_output
